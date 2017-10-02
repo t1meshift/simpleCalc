@@ -71,7 +71,7 @@ var
   SimpleModeForm: TSimpleModeForm;
   FirstOperand, SecondOperand: double;
   Operation: char;
-  StartOfEnter, HasSecondOperand: boolean; //Flags
+  StartOfEnter, HasSecondOperand, EqualWasCalled: boolean; //Flags
 
 
 implementation
@@ -89,6 +89,7 @@ begin
   Operation := #0; //does not exist
   StartOfEnter := true;
   HasSecondOperand := false;
+  EqualWasCalled := false;
 end;
 
 procedure TSimpleModeForm.MemoryClick(Sender: TObject);
@@ -190,6 +191,7 @@ begin
     begin
       if HasSecondOperand and (Key <> #13) and (Key <> '=') then
       begin
+        if (Key = Operation) and not EqualWasCalled then exit;
         HasSecondOperand := false;
       end;
       ArithmHandle(Key);
@@ -209,6 +211,19 @@ begin
     'R':
       begin
        //TODO memory reading
+       if EqualWasCalled then
+       begin
+         StartOfEnter := true;
+         HasSecondOperand := false;
+         EqualWasCalled := false;
+       end;
+       if StartOfEnter or (not HasSecondOperand) then
+         CalcScreenLabel.Caption := FloatToStr(Memory.Read);
+       if HasSecondOperand then
+       begin
+         SecondOperand := Memory.Read;
+         CalcScreenLabel.Caption := FloatToStr(Memory.Read);
+       end;
       end;
     'S':
       if TryStrToFloat(CalcScreenLabel.Caption, MemVal) then
@@ -231,8 +246,9 @@ begin
   case ArithmAction of
     '+':
       begin
-        if StartOfEnter then
+        if StartOfEnter or EqualWasCalled then
         begin
+          EqualWasCalled := false;
           FirstOperand := t;
           StartOfEnter := false;
           HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
@@ -242,31 +258,74 @@ begin
         begin
           if HasSecondOperand then
           begin
-            if (Operation <> ArithmAction) then
-            begin
-              HasSecondOperand := false;
-              SecondOperand := 0;
-            end;
+            FirstOperand := FirstOperand + SecondOperand;
             exit;
           end
           else
           begin
             SecondOperand := t;
             HasSecondOperand := true;
-            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
             FirstOperand := FirstOperand + SecondOperand;
+            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
           end;
         end;
-
         Operation := '+';
       end;
+
     '-':
+    begin
+      if StartOfEnter or EqualWasCalled then
       begin
+        EqualWasCalled := false;
+        FirstOperand := t;
+        StartOfEnter := false;
+        HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' - ';
+        HasSecondOperand := true;
+      end
+      else
+      begin
+        if HasSecondOperand then
+        begin
+          FirstOperand := FirstOperand - SecondOperand;
+          exit;
+        end
+        else
+        begin
+          SecondOperand := t;
+          HasSecondOperand := true;
+          FirstOperand := FirstOperand - SecondOperand;
+          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' - ';
+        end;
       end;
+      Operation := '-';
+    end;
+
     '=', #13:
       begin
-        if StartOfEnter or (not HasSecondOperand) then exit;
-
+        if StartOfEnter then exit;
+         case Operation of
+           '+':
+           begin
+             if (not HasSecondOperand) then
+             begin
+               SecondOperand := t;
+               HasSecondOperand := true;
+             end;
+             FirstOperand := FirstOperand + SecondOperand;
+           end;
+           '-':
+           begin
+             if (not HasSecondOperand) then
+             begin
+               SecondOperand := t;
+               HasSecondOperand := true;
+             end;
+             FirstOperand := FirstOperand - SecondOperand;
+           end;
+         end;
+         HistoryScreenLabel.Caption := '';
+         CalcScreenLabel.Caption := FloatToStr(FirstOperand);
+         EqualWasCalled := true;
       end;
   end;
 end;
@@ -284,6 +343,7 @@ begin
   SecondOperand := 0;
   StartOfEnter := true;
   HasSecondOperand := false;
+  EqualWasCalled := false;
   Operation := #0;
   MemoryHandle('C');
 end;
