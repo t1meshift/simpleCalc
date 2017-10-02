@@ -71,7 +71,7 @@ var
   SimpleModeForm: TSimpleModeForm;
   FirstOperand: double; //Число, первый операнд
   Operation: char; //Операция
-  PrevOpWasEqual: boolean; //Flags
+  PrevOpWasEqual, EqualPressed: boolean; //Flags
 
 
 implementation
@@ -88,6 +88,7 @@ begin
   CalcScreenLabel.Caption := '0';
   Operation := #0; //does not exist
   PrevOpWasEqual := true;
+  EqualPressed := true;
 end;
 
 procedure TSimpleModeForm.MemoryClick(Sender: TObject);
@@ -218,11 +219,14 @@ begin
         if PrevOpWasEqual then
         begin
            HistoryScreenLabel.Caption := FloatToStr(SecondOperand) + ' + ';
-           FirstOperand := SecondOperand;
+           if (not EqualPressed) then
+             FirstOperand := SecondOperand
+           else
+             FirstOperand := FirstOperand + SecondOperand;
+             CalcScreenLabel.Caption := FloatToStr(FirstOperand);
         end
         else
         begin
-          //ArithmHandle('=');
           HistoryScreenLabel.Caption := FloatToStr(FirstOperand + SecondOperand) + ' + ';
           FirstOperand := FirstOperand + SecondOperand;
         end;
@@ -234,11 +238,14 @@ begin
         if PrevOpWasEqual then
         begin
            HistoryScreenLabel.Caption := FloatToStr(SecondOperand) + ' - ';
-           FirstOperand := SecondOperand;
+           if (not EqualPressed) then
+             FirstOperand := SecondOperand
+           else
+             FirstOperand := FirstOperand - SecondOperand;
+             CalcScreenLabel.Caption := FloatToStr(FirstOperand);
         end
         else
         begin
-          //ArithmHandle('=');
           HistoryScreenLabel.Caption := FloatToStr(FirstOperand - SecondOperand) + ' - ';
           FirstOperand := FirstOperand - SecondOperand;
         end;
@@ -248,6 +255,7 @@ begin
     '=', #13:
       begin
         ArithmHandle(Operation); //do previous operation
+        EqualPressed := true;
         HistoryScreenLabel.Caption := '';
         CalcScreenLabel.Caption := FloatToStr(FirstOperand);
         //FirstOperand := 0;
