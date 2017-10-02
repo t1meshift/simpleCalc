@@ -1,0 +1,288 @@
+object SimpleModeForm: TSimpleModeForm
+  Left = 195
+  Height = 293
+  Top = 122
+  Width = 208
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'SimpleModeForm'
+  ClientHeight = 273
+  ClientWidth = 208
+  KeyPreview = True
+  Menu = CalcMenu
+  OnCreate = FormCreate
+  OnKeyPress = OnKeyboardInput
+  LCLVersion = '1.6.2.0'
+  object HistoryScreenLabel: TLabel
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 192
+    Alignment = taRightJustify
+    AutoSize = False
+    Caption = 'HistoryScreenLabel'
+    ParentColor = False
+  end
+  object BtnPanel: TPanel
+    Left = 0
+    Height = 200
+    Top = 72
+    Width = 208
+    ClientHeight = 200
+    ClientWidth = 208
+    TabOrder = 0
+    object MemoryClearButton: TSpeedButton
+      Left = 8
+      Height = 25
+      Top = 8
+      Width = 32
+      Caption = 'MC'
+      OnClick = MemoryClick
+    end
+    object MemoryReadButton: TSpeedButton
+      Left = 48
+      Height = 25
+      Top = 8
+      Width = 32
+      Caption = 'MR'
+      OnClick = MemoryClick
+    end
+    object MemorySaveButton: TSpeedButton
+      Left = 88
+      Height = 25
+      Top = 8
+      Width = 32
+      Caption = 'MS'
+      OnClick = MemoryClick
+    end
+    object MemoryAddButton: TSpeedButton
+      Left = 128
+      Height = 25
+      Top = 8
+      Width = 32
+      Caption = 'M+'
+      OnClick = MemoryClick
+    end
+    object MemorySubButton: TSpeedButton
+      Left = 168
+      Height = 25
+      Top = 8
+      Width = 32
+      Caption = 'M-'
+      OnClick = MemoryClick
+    end
+    object BackspaceButton: TSpeedButton
+      Left = 8
+      Height = 25
+      Top = 40
+      Width = 32
+      Caption = 'Bksp'
+      OnClick = BkspClick
+    end
+    object CEButton: TSpeedButton
+      Left = 48
+      Height = 25
+      Top = 40
+      Width = 32
+      Caption = 'CE'
+      OnClick = ClearClick
+    end
+    object CButton: TSpeedButton
+      Left = 88
+      Height = 25
+      Top = 40
+      Width = 32
+      Caption = 'C'
+      OnClick = ClearClick
+    end
+    object SwitchSignButton: TSpeedButton
+      Left = 128
+      Height = 25
+      Top = 40
+      Width = 32
+      Caption = '+/-'
+    end
+    object SqrtSpeedButton: TSpeedButton
+      Left = 168
+      Height = 25
+      Top = 40
+      Width = 32
+      Caption = 'sqrt'
+    end
+    object Num7Button: TSpeedButton
+      Left = 8
+      Height = 25
+      Top = 72
+      Width = 32
+      Caption = '7'
+      OnClick = DigitClick
+    end
+    object Num8Button: TSpeedButton
+      Left = 48
+      Height = 25
+      Top = 72
+      Width = 32
+      Caption = '8'
+      OnClick = DigitClick
+    end
+    object Num9Button: TSpeedButton
+      Left = 88
+      Height = 25
+      Top = 72
+      Width = 32
+      Caption = '9'
+      OnClick = DigitClick
+    end
+    object Num4Button: TSpeedButton
+      Left = 8
+      Height = 25
+      Top = 104
+      Width = 32
+      Caption = '4'
+      OnClick = DigitClick
+    end
+    object Num5Button: TSpeedButton
+      Left = 48
+      Height = 25
+      Top = 104
+      Width = 32
+      Caption = '5'
+      OnClick = DigitClick
+    end
+    object Num6Button: TSpeedButton
+      Left = 88
+      Height = 25
+      Top = 104
+      Width = 32
+      Caption = '6'
+      OnClick = DigitClick
+    end
+    object Num1Button: TSpeedButton
+      Left = 8
+      Height = 25
+      Top = 136
+      Width = 32
+      Caption = '1'
+      OnClick = DigitClick
+    end
+    object Num2Button: TSpeedButton
+      Left = 48
+      Height = 25
+      Top = 136
+      Width = 32
+      Caption = '2'
+      OnClick = DigitClick
+    end
+    object Num3Button: TSpeedButton
+      Left = 88
+      Height = 25
+      Top = 136
+      Width = 32
+      Caption = '3'
+      OnClick = DigitClick
+    end
+    object Num0Button: TSpeedButton
+      Left = 8
+      Height = 25
+      Top = 168
+      Width = 72
+      Caption = '0'
+      OnClick = DigitClick
+    end
+    object CommaButton: TSpeedButton
+      Left = 88
+      Height = 25
+      Top = 168
+      Width = 32
+      Caption = ','
+      OnClick = CommaClick
+    end
+    object DivButton: TSpeedButton
+      Left = 128
+      Height = 25
+      Top = 72
+      Width = 32
+      Caption = '/'
+      OnClick = ArithmOpClick
+    end
+    object MulButton: TSpeedButton
+      Left = 128
+      Height = 25
+      Top = 104
+      Width = 32
+      Caption = '*'
+      OnClick = ArithmOpClick
+    end
+    object SubButton: TSpeedButton
+      Left = 128
+      Height = 25
+      Top = 136
+      Width = 32
+      Caption = '-'
+      OnClick = ArithmOpClick
+    end
+    object AddButton: TSpeedButton
+      Left = 128
+      Height = 25
+      Top = 168
+      Width = 32
+      Caption = '+'
+      OnClick = ArithmOpClick
+    end
+    object PercentButton: TSpeedButton
+      Left = 168
+      Height = 25
+      Top = 72
+      Width = 32
+      Caption = '%'
+    end
+    object ReverseNumButton: TSpeedButton
+      Left = 168
+      Height = 25
+      Top = 104
+      Width = 32
+      Caption = '1/x'
+    end
+    object EqualButton: TSpeedButton
+      Left = 168
+      Height = 57
+      Top = 136
+      Width = 32
+      Caption = '='
+      OnClick = ArithmOpClick
+    end
+  end
+  object MemoryValueLabel: TLabel
+    Left = 8
+    Height = 15
+    Top = 56
+    Width = 57
+    Caption = 'Memory: 0'
+    ParentColor = False
+  end
+  object CalcScreenLabel: TLabel
+    Left = 8
+    Height = 23
+    Top = 24
+    Width = 192
+    Alignment = taRightJustify
+    AutoSize = False
+    Caption = 'CalcScreenLabel'
+    Font.CharSet = RUSSIAN_CHARSET
+    Font.Height = -17
+    Font.Name = 'Tahoma'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+  end
+  object CalcMenu: TMainMenu
+    left = 8
+    object EditSubMenu: TMenuItem
+      Caption = 'Edit'
+    end
+    object HelpSubMenu: TMenuItem
+      Caption = 'Help'
+    end
+  end
+end
