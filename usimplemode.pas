@@ -61,6 +61,7 @@ type
     procedure ArithmHandle(ArithmAction: char);
     procedure ClearLastNumber;
     procedure ClearAll;
+    procedure SwitchSignButtonClick(Sender: TObject);
   private
     { private declarations }
   public
@@ -250,6 +251,7 @@ begin
           StartOfEnter := false;
           HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
           HasSecondOperand := true;
+          SecondOperand := t;
         end
         else
         begin
@@ -278,6 +280,7 @@ begin
         StartOfEnter := false;
         HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' - ';
         HasSecondOperand := true;
+        SecondOperand := t;
       end
       else
       begin
@@ -306,6 +309,7 @@ begin
         StartOfEnter := false;
         HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' * ';
         HasSecondOperand := true;
+        SecondOperand := t;
       end
       else
       begin
@@ -334,6 +338,7 @@ begin
         StartOfEnter := false;
         HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' / ';
         HasSecondOperand := true;
+        SecondOperand := t;
       end
       else
       begin
@@ -429,6 +434,7 @@ end;
 procedure TSimpleModeForm.ClearAll;
 begin
   //CE + clear operation and memory
+  HistoryScreenLabel.Caption := '';
   CalcScreenLabel.Caption := '0';
   FirstOperand := 0;
   SecondOperand := 0;
@@ -437,6 +443,15 @@ begin
   EqualWasCalled := false;
   DivByZero := false;
   Operation := #0;
+end;
+
+procedure TSimpleModeForm.SwitchSignButtonClick(Sender: TObject);
+var
+  t: double;
+begin
+  if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit;
+  CalcScreenLabel.Caption := FloatToStr(-t);
+  HasSecondOperand := false;
 end;
 
 end.

@@ -101,6 +101,7 @@ object SimpleModeForm: TSimpleModeForm
       Top = 40
       Width = 32
       Caption = '+/-'
+      OnClick = SwitchSignButtonClick
     end
     object SqrtSpeedButton: TSpeedButton
       Left = 168
