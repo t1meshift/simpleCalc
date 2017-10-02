@@ -71,7 +71,7 @@ var
   SimpleModeForm: TSimpleModeForm;
   FirstOperand, SecondOperand: double;
   Operation: char;
-  StartOfEnter, HasSecondOperand, EqualWasCalled: boolean; //Flags
+  StartOfEnter, HasSecondOperand, EqualWasCalled, DivByZero: boolean; //Flags
 
 
 implementation
@@ -84,12 +84,7 @@ implementation
 
 procedure TSimpleModeForm.FormCreate(Sender: TObject);
 begin
-  //Start number
-  CalcScreenLabel.Caption := '0';
-  Operation := #0; //does not exist
-  StartOfEnter := true;
-  HasSecondOperand := false;
-  EqualWasCalled := false;
+  ClearAll;
 end;
 
 procedure TSimpleModeForm.MemoryClick(Sender: TObject);
@@ -137,6 +132,7 @@ var
   s: string;
   t: double;
 begin
+  if DivByZero then exit;
   case Key of
     // just digits
     '0'..'9':
@@ -205,6 +201,7 @@ procedure TSimpleModeForm.MemoryHandle(MemAction: char);
 var
   MemVal: double;
 begin
+  if DivByZero then exit;
   case MemAction of
     'C':
       Memory.Clear;
@@ -300,6 +297,74 @@ begin
       Operation := '-';
     end;
 
+    '*':
+    begin
+      if StartOfEnter or EqualWasCalled then
+      begin
+        EqualWasCalled := false;
+        FirstOperand := t;
+        StartOfEnter := false;
+        HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' * ';
+        HasSecondOperand := true;
+      end
+      else
+      begin
+        if HasSecondOperand then
+        begin
+          FirstOperand := FirstOperand * SecondOperand;
+          exit;
+        end
+        else
+        begin
+          SecondOperand := t;
+          HasSecondOperand := true;
+          FirstOperand := FirstOperand * SecondOperand;
+          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' * ';
+        end;
+      end;
+      Operation := '*';
+    end;
+
+    '/':
+    begin
+      if StartOfEnter or EqualWasCalled then
+      begin
+        EqualWasCalled := false;
+        FirstOperand := t;
+        StartOfEnter := false;
+        HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' / ';
+        HasSecondOperand := true;
+      end
+      else
+      begin
+        if HasSecondOperand then
+        begin
+          if (SecondOperand = 0) then
+          begin
+            CalcScreenLabel.Caption := 'Division by 0 is impossible';
+            exit;
+          end;
+          FirstOperand := FirstOperand / SecondOperand;
+          exit;
+        end
+        else
+        begin
+          SecondOperand := t;
+          HasSecondOperand := true;
+          if (SecondOperand = 0) then
+          begin
+            HistoryScreenLabel.Caption := '';
+            DivByZero := true;
+            CalcScreenLabel.Caption := 'Division by 0 is impossible';
+            exit;
+          end;
+          FirstOperand := FirstOperand / SecondOperand;
+          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' / ';
+        end;
+      end;
+      Operation := '/';
+    end;
+
     '=', #13:
       begin
         if StartOfEnter then exit;
@@ -322,6 +387,31 @@ begin
              end;
              FirstOperand := FirstOperand - SecondOperand;
            end;
+           '*':
+           begin
+             if (not HasSecondOperand) then
+             begin
+               SecondOperand := t;
+               HasSecondOperand := true;
+             end;
+             FirstOperand := FirstOperand * SecondOperand;
+           end;
+           '/':
+           begin
+             if (not HasSecondOperand) then
+             begin
+               SecondOperand := t;
+               HasSecondOperand := true;
+             end;
+             if (SecondOperand = 0) then
+             begin
+               HistoryScreenLabel.Caption := '';
+               DivByZero := true;
+               CalcScreenLabel.Caption := 'Division by 0 is impossible';
+               exit;
+             end;
+             FirstOperand := FirstOperand / SecondOperand;
+           end;
          end;
          HistoryScreenLabel.Caption := '';
          CalcScreenLabel.Caption := FloatToStr(FirstOperand);
@@ -332,20 +422,21 @@ end;
 
 procedure TSimpleModeForm.ClearLastNumber;
 begin
+  if DivByZero then exit;
   CalcScreenLabel.Caption := '0';
 end;
 
 procedure TSimpleModeForm.ClearAll;
 begin
   //CE + clear operation and memory
-  ClearLastNumber;
+  CalcScreenLabel.Caption := '0';
   FirstOperand := 0;
   SecondOperand := 0;
   StartOfEnter := true;
   HasSecondOperand := false;
   EqualWasCalled := false;
+  DivByZero := false;
   Operation := #0;
-  MemoryHandle('C');
 end;
 
 end.

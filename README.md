@@ -1,4 +1,10 @@
 # Simple Calculator
-Bug List:
-- Multiple Enter pressing work incorrect
-- and many others
+What works:
+- Arithmetics
+- Memory
+
+What left to do:
+- Invert sign
+- 1/x
+- sqrt
+- Percent
