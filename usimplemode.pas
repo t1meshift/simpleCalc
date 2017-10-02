@@ -69,9 +69,9 @@ type
 
 var
   SimpleModeForm: TSimpleModeForm;
-  FirstOperand: double; //Число, первый операнд
-  Operation: char; //Операция
-  PrevOpWasEqual, EqualPressed: boolean; //Flags
+  FirstOperand, SecondOperand: double;
+  Operation: char;
+  StartOfEnter, HasSecondOperand: boolean; //Flags
 
 
 implementation
@@ -87,8 +87,8 @@ begin
   //Start number
   CalcScreenLabel.Caption := '0';
   Operation := #0; //does not exist
-  PrevOpWasEqual := true;
-  EqualPressed := true;
+  StartOfEnter := true;
+  HasSecondOperand := false;
 end;
 
 procedure TSimpleModeForm.MemoryClick(Sender: TObject);
@@ -140,6 +140,11 @@ begin
     // just digits
     '0'..'9':
     begin
+      if HasSecondOperand then
+      begin
+        ClearLastNumber;
+        HasSecondOperand := false;
+      end;
       if (pos('E', CalcScreenLabel.Caption) <> 0) or (Length(CalcScreenLabel.Caption) > 20) then exit;
       if (CalcScreenLabel.Caption = '0') then
         CalcScreenLabel.Caption := Key
@@ -150,6 +155,7 @@ begin
     // backspace symbol
     #8:
     begin
+      if HasSecondOperand then exit;
       if (pos('E', CalcScreenLabel.Caption) <> 0)
       or (CalcScreenLabel.Caption = '0')
       or (Length(CalcScreenLabel.Caption) = 1)
@@ -168,6 +174,11 @@ begin
     //comma symbol
     '.', ',':
     begin
+      if HasSecondOperand then
+      begin
+        ClearLastNumber;
+        HasSecondOperand := false;
+      end;
       if (pos(',', CalcScreenLabel.Caption) <> 0)
       or (pos('E', CalcScreenLabel.Caption) <> 0)
       or (not TryStrToFloat(CalcScreenLabel.Caption, t)) then
@@ -177,6 +188,10 @@ begin
 
     '+','-','*','/',#13:
     begin
+      if HasSecondOperand and (Key <> #13) and (Key <> '=') then
+      begin
+        HasSecondOperand := false;
+      end;
       ArithmHandle(Key);
     end;
 
@@ -210,56 +225,48 @@ end;
 
 procedure TSimpleModeForm.ArithmHandle(ArithmAction: char);
 var
-  SecondOperand: double;
+  t: double;
 begin
-  if (not TryStrToFloat(CalcScreenLabel.Caption, SecondOperand)) then exit; //if there is any error do nothing
+  if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit; //if there is any error do nothing
   case ArithmAction of
     '+':
       begin
-        if PrevOpWasEqual then
+        if StartOfEnter then
         begin
-           HistoryScreenLabel.Caption := FloatToStr(SecondOperand) + ' + ';
-           if (not EqualPressed) then
-             FirstOperand := SecondOperand
-           else
-             FirstOperand := FirstOperand + SecondOperand;
-             CalcScreenLabel.Caption := FloatToStr(FirstOperand);
+          FirstOperand := t;
+          StartOfEnter := false;
+          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
+          HasSecondOperand := true;
         end
         else
         begin
-          HistoryScreenLabel.Caption := FloatToStr(FirstOperand + SecondOperand) + ' + ';
-          FirstOperand := FirstOperand + SecondOperand;
+          if HasSecondOperand then
+          begin
+            if (Operation <> ArithmAction) then
+            begin
+              HasSecondOperand := false;
+              SecondOperand := 0;
+            end;
+            exit;
+          end
+          else
+          begin
+            SecondOperand := t;
+            HasSecondOperand := true;
+            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
+            FirstOperand := FirstOperand + SecondOperand;
+          end;
         end;
+
         Operation := '+';
-        PrevOpWasEqual := false;
       end;
     '-':
       begin
-        if PrevOpWasEqual then
-        begin
-           HistoryScreenLabel.Caption := FloatToStr(SecondOperand) + ' - ';
-           if (not EqualPressed) then
-             FirstOperand := SecondOperand
-           else
-             FirstOperand := FirstOperand - SecondOperand;
-             CalcScreenLabel.Caption := FloatToStr(FirstOperand);
-        end
-        else
-        begin
-          HistoryScreenLabel.Caption := FloatToStr(FirstOperand - SecondOperand) + ' - ';
-          FirstOperand := FirstOperand - SecondOperand;
-        end;
-        Operation := '-';
-        PrevOpWasEqual := false;
       end;
     '=', #13:
       begin
-        ArithmHandle(Operation); //do previous operation
-        EqualPressed := true;
-        HistoryScreenLabel.Caption := '';
-        CalcScreenLabel.Caption := FloatToStr(FirstOperand);
-        //FirstOperand := 0;
-        PrevOpWasEqual := true;
+        if StartOfEnter or (not HasSecondOperand) then exit;
+
       end;
   end;
 end;
@@ -274,6 +281,9 @@ begin
   //CE + clear operation and memory
   ClearLastNumber;
   FirstOperand := 0;
+  SecondOperand := 0;
+  StartOfEnter := true;
+  HasSecondOperand := false;
   Operation := #0;
   MemoryHandle('C');
 end;
