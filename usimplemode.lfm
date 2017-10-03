@@ -237,6 +237,7 @@ object SimpleModeForm: TSimpleModeForm
       Top = 72
       Width = 32
       Caption = '%'
+      OnClick = PercentButtonClick
     end
     object ReverseNumButton: TSpeedButton
       Left = 168

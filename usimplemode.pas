@@ -61,6 +61,7 @@ type
     procedure ArithmHandle(ArithmAction: char);
     procedure ClearLastNumber;
     procedure ClearAll;
+    procedure PercentButtonClick(Sender: TObject);
     procedure ReverseNumButtonClick(Sender: TObject);
     procedure ThrowCalcError(Message: string);
     procedure SqrtSpeedButtonClick(Sender: TObject);
@@ -73,8 +74,9 @@ type
 
 var
   SimpleModeForm: TSimpleModeForm;
-  FirstOperand, SecondOperand: double;
-  Operation: char;
+  FirstOperand, SecondOperand: double; //Operands
+  PercentValue: double; // percent value we've taken from the operation
+  Operation: char; //Last operation
   StartOfEnter, HasSecondOperand, EqualWasCalled, CalcError: boolean; //Flags
 
 
@@ -131,7 +133,7 @@ begin
   InputHandle(Key);
 end;
 
-procedure TSimpleModeForm.InputHandle(Key: char);
+procedure TSimpleModeForm.InputHandle(Key: char);  // input handler, unites keyboard and button enter
 var
   s: string;
   t: double;
@@ -180,11 +182,11 @@ begin
         ClearLastNumber;
         HasSecondOperand := false;
       end;
-      if (pos(',', CalcScreenLabel.Caption) <> 0)
+      if (pos(DefaultFormatSettings.DecimalSeparator, CalcScreenLabel.Caption) <> 0)
       or (pos('E', CalcScreenLabel.Caption) <> 0)
       or (not TryStrToFloat(CalcScreenLabel.Caption, t)) then
         exit;
-      CalcScreenLabel.Caption := CalcScreenLabel.Caption + ',';
+      CalcScreenLabel.Caption := CalcScreenLabel.Caption + DefaultFormatSettings.DecimalSeparator;
     end;
 
     '+','-','*','/','=',#13:
@@ -201,7 +203,7 @@ begin
   end;
 end;
 
-procedure TSimpleModeForm.MemoryHandle(MemAction: char);
+procedure TSimpleModeForm.MemoryHandle(MemAction: char); // memory buttons handler
 var
   MemVal: double;
 begin
@@ -246,170 +248,62 @@ begin
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit; //if there is any error do nothing
   try
     case ArithmAction of
-      '+':
+      '+','-','*','/':
         begin
           if StartOfEnter or EqualWasCalled then
           begin
             EqualWasCalled := false;
             FirstOperand := t;
             StartOfEnter := false;
-            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
+            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' ' + ArithmAction + ' ';
             HasSecondOperand := true;
             SecondOperand := t;
           end
           else
           begin
-            if HasSecondOperand then
-            begin
-              FirstOperand := FirstOperand + SecondOperand;
-              exit;
-            end
-            else
+            if (not HasSecondOperand) then
             begin
               SecondOperand := t;
               HasSecondOperand := true;
-              FirstOperand := FirstOperand + SecondOperand;
-              HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' + ';
             end;
-          end;
-          Operation := '+';
-        end;
-
-      '-':
-      begin
-        if StartOfEnter or EqualWasCalled then
-        begin
-          EqualWasCalled := false;
-          FirstOperand := t;
-          StartOfEnter := false;
-          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' - ';
-          HasSecondOperand := true;
-          SecondOperand := t;
-        end
-        else
-        begin
-          if HasSecondOperand then
-          begin
-            FirstOperand := FirstOperand - SecondOperand;
-            exit;
-          end
-          else
-          begin
-            SecondOperand := t;
-            HasSecondOperand := true;
-            FirstOperand := FirstOperand - SecondOperand;
-            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' - ';
-          end;
-        end;
-        Operation := '-';
-      end;
-
-      '*':
-      begin
-        if StartOfEnter or EqualWasCalled then
-        begin
-          EqualWasCalled := false;
-          FirstOperand := t;
-          StartOfEnter := false;
-          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' * ';
-          HasSecondOperand := true;
-          SecondOperand := t;
-        end
-        else
-        begin
-          if HasSecondOperand then
-          begin
-            FirstOperand := FirstOperand * SecondOperand;
-            exit;
-          end
-          else
-          begin
-            SecondOperand := t;
-            HasSecondOperand := true;
-            FirstOperand := FirstOperand * SecondOperand;
-            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' * ';
-          end;
-        end;
-        Operation := '*';
-      end;
-
-      '/':
-      begin
-        if StartOfEnter or EqualWasCalled then
-        begin
-          EqualWasCalled := false;
-          FirstOperand := t;
-          StartOfEnter := false;
-          HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' / ';
-          HasSecondOperand := true;
-          SecondOperand := t;
-        end
-        else
-        begin
-          if HasSecondOperand then
-          begin
-            if (SecondOperand = 0) then
-            begin
-              CalcScreenLabel.Caption := 'Division by 0 is impossible';
-              exit;
+            case ArithmAction of
+              '+':
+                FirstOperand := FirstOperand + SecondOperand;
+              '-':
+                FirstOperand := FirstOperand - SecondOperand;
+              '*':
+                FirstOperand := FirstOperand * SecondOperand;
+              '/':
+              if (SecondOperand = 0) then begin
+                ThrowCalcError('Division by 0 is impossible');
+                exit;
+              end
+              else
+                FirstOperand := FirstOperand / SecondOperand;
             end;
-            FirstOperand := FirstOperand / SecondOperand;
-            exit;
-          end
-          else
-          begin
-            SecondOperand := t;
-            HasSecondOperand := true;
-            if (SecondOperand = 0) then
-            begin
-              ThrowCalcError('Division by 0 is impossible');
-              exit;
-            end;
-            FirstOperand := FirstOperand / SecondOperand;
-            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' / ';
+            if (not HasSecondOperand) then
+              HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' ' + ArithmAction + ' ';
           end;
+          Operation := ArithmAction;
         end;
-        Operation := '/';
-      end;
 
       '=', #13:
         begin
           if StartOfEnter then exit;
+          if (not HasSecondOperand) then
+          begin
+            SecondOperand := t;
+            HasSecondOperand := true;
+          end;
            case Operation of
              '+':
-             begin
-               if (not HasSecondOperand) then
-               begin
-                 SecondOperand := t;
-                 HasSecondOperand := true;
-               end;
                FirstOperand := FirstOperand + SecondOperand;
-             end;
              '-':
-             begin
-               if (not HasSecondOperand) then
-               begin
-                 SecondOperand := t;
-                 HasSecondOperand := true;
-               end;
                FirstOperand := FirstOperand - SecondOperand;
-             end;
              '*':
-             begin
-               if (not HasSecondOperand) then
-               begin
-                 SecondOperand := t;
-                 HasSecondOperand := true;
-               end;
                FirstOperand := FirstOperand * SecondOperand;
-             end;
              '/':
              begin
-               if (not HasSecondOperand) then
-               begin
-                 SecondOperand := t;
-                 HasSecondOperand := true;
-               end;
                if (SecondOperand = 0) then
                begin
                  ThrowCalcError('Division by 0 is impossible');
@@ -446,6 +340,45 @@ begin
   EqualWasCalled := false;
   CalcError := false;
   Operation := #0;
+end;
+
+procedure TSimpleModeForm.PercentButtonClick(Sender: TObject);
+var
+  t: double;
+begin
+  if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit;
+  try
+    if (not HasSecondOperand) then
+    begin
+      PercentValue := t;
+      SecondOperand := FirstOperand * (t / 100);
+      CalcScreenLabel.Caption := FloatToStr(SecondOperand);
+      HasSecondOperand := true;
+    end
+    else
+    begin
+      if (EqualWasCalled) then
+      begin
+        SecondOperand := FirstOperand;
+        PercentValue := SecondOperand;
+        case Operation of
+          '+':
+              FirstOperand := FirstOperand + (FirstOperand * (PercentValue / 100));
+          '-':
+              FirstOperand := FirstOperand - (FirstOperand * (PercentValue / 100));
+          '*','/':
+              FirstOperand := FirstOperand * (PercentValue / 100);
+        end;
+        CalcScreenLabel.Caption := FloatToStr(FirstOperand);
+        HasSecondOperand := false;
+      end;
+    end;
+  except
+    on EOverflow do
+      ThrowCalcError('Overflow');
+    on EMathError do
+      ThrowCalcError('Incorrect operation');
+  end;
 end;
 
 procedure TSimpleModeForm.ReverseNumButtonClick(Sender: TObject);

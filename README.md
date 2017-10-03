@@ -5,6 +5,8 @@ What works:
 - Invert sign
 - 1/x
 - sqrt
+- Percent
 
 What left to do:
-- Percent
+- Bug fixing
+- *MORE* code refactoring
