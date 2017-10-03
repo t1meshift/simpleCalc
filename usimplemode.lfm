@@ -109,6 +109,7 @@ object SimpleModeForm: TSimpleModeForm
       Top = 40
       Width = 32
       Caption = 'sqrt'
+      OnClick = SqrtSpeedButtonClick
     end
     object Num7Button: TSpeedButton
       Left = 8
@@ -243,6 +244,7 @@ object SimpleModeForm: TSimpleModeForm
       Top = 104
       Width = 32
       Caption = '1/x'
+      OnClick = ReverseNumButtonClick
     end
     object EqualButton: TSpeedButton
       Left = 168
