@@ -6,6 +6,7 @@ What works:
 - 1/x
 - sqrt
 - Percent
+- Clipboard
 
 What left to do:
 - Bug fixing

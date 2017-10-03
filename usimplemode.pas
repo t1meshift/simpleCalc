@@ -6,13 +6,16 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Buttons, Menus, ActnList, UMemory;
+  ExtCtrls, Buttons, Menus, ActnList, Clipbrd, ComCtrls, LCLType, UMemory, UAbout;
 
 type
 
   { TSimpleModeForm }
 
   TSimpleModeForm = class(TForm)
+    CopyMenuItem: TMenuItem;
+    AboutMenuItem: TMenuItem;
+    PasteMenuItem: TMenuItem;
     BackspaceButton: TSpeedButton;
     CEButton: TSpeedButton;
     AddButton: TSpeedButton;
@@ -48,10 +51,13 @@ type
     MemoryClearButton: TSpeedButton;
     HistoryScreenLabel: TLabel;
     BtnPanel: TPanel;
+    procedure AboutMenuItemClick(Sender: TObject);
     procedure ArithmOpClick(Sender: TObject);
     procedure BkspClick(Sender: TObject);
+    procedure CalcScreenLabelClick(Sender: TObject);
     procedure ClearClick(Sender: TObject);
     procedure CommaClick(Sender: TObject);
+    procedure CopyMenuItemClick(Sender: TObject);
     procedure DigitClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure MemoryClick(Sender: TObject);
@@ -61,6 +67,7 @@ type
     procedure ArithmHandle(ArithmAction: char);
     procedure ClearLastNumber;
     procedure ClearAll;
+    procedure PasteMenuItemClick(Sender: TObject);
     procedure PercentButtonClick(Sender: TObject);
     procedure ReverseNumButtonClick(Sender: TObject);
     procedure ThrowCalcError(Message: string);
@@ -83,8 +90,6 @@ var
 implementation
 
 {$R *.lfm}
-
-
 
 { TSimpleModeForm }
 
@@ -109,9 +114,19 @@ begin
   InputHandle(#8);
 end;
 
+procedure TSimpleModeForm.CalcScreenLabelClick(Sender: TObject);
+begin
+
+end;
+
 procedure TSimpleModeForm.ArithmOpClick(Sender: TObject);
 begin
   ArithmHandle(TButton(Sender).Caption[1]);
+end;
+
+procedure TSimpleModeForm.AboutMenuItemClick(Sender: TObject);
+begin
+  AboutForm.ShowModal;
 end;
 
 procedure TSimpleModeForm.ClearClick(Sender: TObject);
@@ -125,6 +140,11 @@ end;
 procedure TSimpleModeForm.CommaClick(Sender: TObject);
 begin
   InputHandle(',');
+end;
+
+procedure TSimpleModeForm.CopyMenuItemClick(Sender: TObject);
+begin
+  Clipboard.AsText := CalcScreenLabel.Caption;
 end;
 
 procedure TSimpleModeForm.OnKeyboardInput(Sender: TObject; var Key: char);
@@ -199,7 +219,8 @@ begin
       ArithmHandle(Key);
     end;
 
-    //TODO: lots of buttons
+    chr(VK_ESCAPE):
+      ClearAll;
   end;
 end;
 
@@ -324,8 +345,8 @@ end;
 
 procedure TSimpleModeForm.ClearLastNumber;
 begin
-  if CalcError then exit;
-  CalcScreenLabel.Caption := '0';
+  if not CalcError then
+    CalcScreenLabel.Caption := '0';
 end;
 
 procedure TSimpleModeForm.ClearAll;
@@ -340,6 +361,31 @@ begin
   EqualWasCalled := false;
   CalcError := false;
   Operation := #0;
+end;
+
+procedure TSimpleModeForm.PasteMenuItemClick(Sender: TObject);
+var
+  TextToPaste: string;
+  i: UInt32;
+  CommaPassed: boolean;
+begin
+  if (Clipboard.AsText <> '') and (not CalcError) then
+  begin
+    CommaPassed := false;
+    TextToPaste := '';
+    for i := 1 to Length(Clipboard.AsText) do
+      case Clipboard.AsText[i] of
+        '0'..'9':
+          TextToPaste := TextToPaste + Clipboard.AsText[i];
+        else
+          if (Clipboard.AsText[i] = DefaultFormatSettings.DecimalSeparator) and (not CommaPassed) then
+          begin
+            CommaPassed := true;
+            TextToPaste := TextToPaste + Clipboard.AsText[i];
+          end;
+      end;
+    if (TextToPaste <> '') then CalcScreenLabel.Caption := TextToPaste;
+  end;
 end;
 
 procedure TSimpleModeForm.PercentButtonClick(Sender: TObject);

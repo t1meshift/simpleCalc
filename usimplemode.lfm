@@ -1,12 +1,12 @@
 object SimpleModeForm: TSimpleModeForm
   Left = 195
-  Height = 293
+  Height = 287
   Top = 122
   Width = 208
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'SimpleModeForm'
-  ClientHeight = 273
+  Caption = 'SimpleCalc'
+  ClientHeight = 267
   ClientWidth = 208
   KeyPreview = True
   Menu = CalcMenu
@@ -26,7 +26,7 @@ object SimpleModeForm: TSimpleModeForm
   object BtnPanel: TPanel
     Left = 0
     Height = 200
-    Top = 72
+    Top = 64
     Width = 208
     ClientHeight = 200
     ClientWidth = 208
@@ -259,7 +259,7 @@ object SimpleModeForm: TSimpleModeForm
   object MemoryValueLabel: TLabel
     Left = 8
     Height = 15
-    Top = 56
+    Top = 48
     Width = 57
     Caption = 'Memory: 0'
     ParentColor = False
@@ -279,14 +279,30 @@ object SimpleModeForm: TSimpleModeForm
     Font.Quality = fqDraft
     ParentColor = False
     ParentFont = False
+    OnClick = CalcScreenLabelClick
   end
   object CalcMenu: TMainMenu
-    left = 8
+    left = 24
     object EditSubMenu: TMenuItem
       Caption = 'Edit'
+      object CopyMenuItem: TMenuItem
+        Caption = 'Copy'
+        ShortCut = 16451
+        OnClick = CopyMenuItemClick
+      end
+      object PasteMenuItem: TMenuItem
+        Caption = 'Paste'
+        ShortCut = 16470
+        OnClick = PasteMenuItemClick
+      end
     end
     object HelpSubMenu: TMenuItem
       Caption = 'Help'
+      object AboutMenuItem: TMenuItem
+        Caption = 'About...'
+        ShortCut = 16496
+        OnClick = AboutMenuItemClick
+      end
     end
   end
 end
