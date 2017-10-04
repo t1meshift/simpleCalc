@@ -1,7 +1,6 @@
 unit UMemory;
 
 {$mode objfpc}{$H+}
-{$MODESWITCH ADVANCEDRECORDS}
 
 interface
 

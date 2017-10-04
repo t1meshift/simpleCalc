@@ -1,0 +1,32 @@
+object HistoryForm: THistoryForm
+  Left = 232
+  Height = 241
+  Top = 154
+  Width = 436
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsToolWindow
+  Caption = 'History'
+  ClientHeight = 241
+  ClientWidth = 436
+  OnActivate = FormActivate
+  LCLVersion = '1.6.2.0'
+  object HistoryListBox: TListBox
+    Left = 0
+    Height = 216
+    Top = 24
+    Width = 435
+    ExtendedSelect = False
+    ItemHeight = 0
+    OnDblClick = HistoryListBoxDblClick
+    TabOrder = 0
+  end
+  object ClearHistoryButton: TButton
+    Left = 0
+    Height = 25
+    Top = 0
+    Width = 435
+    Caption = 'Clear'
+    OnClick = ClearHistoryButtonClick
+    TabOrder = 1
+  end
+end

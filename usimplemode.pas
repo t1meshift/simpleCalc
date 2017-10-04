@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Buttons, Menus, ActnList, Clipbrd, ComCtrls, LCLType, UMemory, UAbout;
+  ExtCtrls, Buttons, Menus, ActnList, Clipbrd, ComCtrls, LCLType, UMemory, UHistory, UAbout;
 
 type
 
@@ -15,6 +15,8 @@ type
   TSimpleModeForm = class(TForm)
     CopyMenuItem: TMenuItem;
     AboutMenuItem: TMenuItem;
+    HistoryMenuItem: TMenuItem;
+    DelimeterMenuItem: TMenuItem;
     PasteMenuItem: TMenuItem;
     BackspaceButton: TSpeedButton;
     CEButton: TSpeedButton;
@@ -54,12 +56,12 @@ type
     procedure AboutMenuItemClick(Sender: TObject);
     procedure ArithmOpClick(Sender: TObject);
     procedure BkspClick(Sender: TObject);
-    procedure CalcScreenLabelClick(Sender: TObject);
     procedure ClearClick(Sender: TObject);
     procedure CommaClick(Sender: TObject);
     procedure CopyMenuItemClick(Sender: TObject);
     procedure DigitClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure HistoryMenuItemClick(Sender: TObject);
     procedure MemoryClick(Sender: TObject);
     procedure OnKeyboardInput(Sender: TObject; var Key: char);
     procedure InputHandle(Key: char);
@@ -98,15 +100,20 @@ begin
   ClearAll;
 end;
 
+procedure TSimpleModeForm.HistoryMenuItemClick(Sender: TObject);
+begin
+  HistoryForm.Show;
+end;
+
 procedure TSimpleModeForm.MemoryClick(Sender: TObject);
 begin
-  MemoryHandle(TButton(Sender).Caption[2]);
+  MemoryHandle(TSpeedButton(Sender).Caption[2]);
 end;
 
 procedure TSimpleModeForm.DigitClick(Sender: TObject);
 begin
   //An evil hack for digit buttons
-  InputHandle(TButton(Sender).Caption[1]);
+  InputHandle(TSpeedButton(Sender).Caption[1]);
 end;
 
 procedure TSimpleModeForm.BkspClick(Sender: TObject);
@@ -114,14 +121,9 @@ begin
   InputHandle(#8);
 end;
 
-procedure TSimpleModeForm.CalcScreenLabelClick(Sender: TObject);
-begin
-
-end;
-
 procedure TSimpleModeForm.ArithmOpClick(Sender: TObject);
 begin
-  ArithmHandle(TButton(Sender).Caption[1]);
+  ArithmHandle(TSpeedButton(Sender).Caption[1]);
 end;
 
 procedure TSimpleModeForm.AboutMenuItemClick(Sender: TObject);
@@ -131,7 +133,7 @@ end;
 
 procedure TSimpleModeForm.ClearClick(Sender: TObject);
 begin
-  case TButton(Sender).Caption of
+  case TSpeedButton(Sender).Caption of
     'C': ClearAll;
     'CE': ClearLastNumber;
   end;
@@ -149,7 +151,6 @@ end;
 
 procedure TSimpleModeForm.OnKeyboardInput(Sender: TObject; var Key: char);
 begin
-  //CalcScreenLabel.Caption:=IntToStr(ord(Key)) + '(' + Key + ')';
   InputHandle(Key);
 end;
 
@@ -289,18 +290,30 @@ begin
             end;
             case ArithmAction of
               '+':
-                FirstOperand := FirstOperand + SecondOperand;
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' + ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand + SecondOperand));
+                  FirstOperand := FirstOperand + SecondOperand;
+                end;
               '-':
-                FirstOperand := FirstOperand - SecondOperand;
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' - ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand - SecondOperand));
+                  FirstOperand := FirstOperand - SecondOperand;
+                end;
               '*':
-                FirstOperand := FirstOperand * SecondOperand;
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' * ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand * SecondOperand));
+                  FirstOperand := FirstOperand * SecondOperand;
+                end;
               '/':
               if (SecondOperand = 0) then begin
                 ThrowCalcError('Division by 0 is impossible');
                 exit;
               end
               else
-                FirstOperand := FirstOperand / SecondOperand;
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' / ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand / SecondOperand));
+                  FirstOperand := FirstOperand / SecondOperand;
+                end;
             end;
             if (not HasSecondOperand) then
               HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' ' + ArithmAction + ' ';
@@ -318,20 +331,30 @@ begin
           end;
            case Operation of
              '+':
-               FirstOperand := FirstOperand + SecondOperand;
-             '-':
-               FirstOperand := FirstOperand - SecondOperand;
-             '*':
-               FirstOperand := FirstOperand * SecondOperand;
-             '/':
-             begin
-               if (SecondOperand = 0) then
-               begin
-                 ThrowCalcError('Division by 0 is impossible');
-                 exit;
-               end;
-               FirstOperand := FirstOperand / SecondOperand;
-             end;
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' + ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand + SecondOperand));
+                  FirstOperand := FirstOperand + SecondOperand;
+                end;
+              '-':
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' - ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand - SecondOperand));
+                  FirstOperand := FirstOperand - SecondOperand;
+                end;
+              '*':
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' * ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand * SecondOperand));
+                  FirstOperand := FirstOperand * SecondOperand;
+                end;
+              '/':
+                if (SecondOperand = 0) then begin
+                  ThrowCalcError('Division by 0 is impossible');
+                  exit;
+                end
+                else
+                begin
+                  History.AddItem(FloatToStr(FirstOperand) + ' / ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand / SecondOperand));
+                  FirstOperand := FirstOperand / SecondOperand;
+                end;
            end;
            HistoryScreenLabel.Caption := '';
            CalcScreenLabel.Caption := FloatToStr(FirstOperand);

@@ -7,6 +7,7 @@ What works:
 - sqrt
 - Percent
 - Clipboard
+- Operations history
 
 What left to do:
 - Bug fixing

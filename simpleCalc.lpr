@@ -8,16 +8,18 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, USimpleMode, UMemory, UAbout
+  Forms, USimpleMode, UMemory, UAbout, UHistory
   { you can add units after this };
 
 {$R *.res}
 
 begin
+  Application.Title:='SimpleCalc';
   RequireDerivedFormResource:=True;
   Application.Initialize;
   Application.CreateForm(TSimpleModeForm, SimpleModeForm);
   Application.CreateForm(TAboutForm, AboutForm);
+  Application.CreateForm(THistoryForm, HistoryForm);
   Application.Run;
 end.
 

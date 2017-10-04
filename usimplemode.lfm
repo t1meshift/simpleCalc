@@ -1,7 +1,7 @@
 object SimpleModeForm: TSimpleModeForm
-  Left = 195
+  Left = 210
   Height = 287
-  Top = 122
+  Top = 120
   Width = 208
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
@@ -279,12 +279,20 @@ object SimpleModeForm: TSimpleModeForm
     Font.Quality = fqDraft
     ParentColor = False
     ParentFont = False
-    OnClick = CalcScreenLabelClick
   end
   object CalcMenu: TMainMenu
     left = 24
     object EditSubMenu: TMenuItem
       Caption = 'Edit'
+      object HistoryMenuItem: TMenuItem
+        Caption = 'History'
+        ShortCut = 16456
+        OnClick = HistoryMenuItemClick
+      end
+      object DelimeterMenuItem: TMenuItem
+        Caption = '------'
+        Enabled = False
+      end
       object CopyMenuItem: TMenuItem
         Caption = 'Copy'
         ShortCut = 16451
