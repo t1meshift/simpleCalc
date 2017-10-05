@@ -15,6 +15,7 @@ type
   THistoryForm = class(TForm)
     ClearHistoryButton: TButton;
     HistoryListBox: TListBox;
+    HintLabel: TLabel;
     procedure ClearHistoryButtonClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure HistoryListBoxDblClick(Sender: TObject);

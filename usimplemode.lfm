@@ -76,7 +76,7 @@ object SimpleModeForm: TSimpleModeForm
       Height = 25
       Top = 40
       Width = 32
-      Caption = 'Bksp'
+      Caption = '←'
       OnClick = BkspClick
     end
     object CEButton: TSpeedButton
@@ -100,7 +100,7 @@ object SimpleModeForm: TSimpleModeForm
       Height = 25
       Top = 40
       Width = 32
-      Caption = '+/-'
+      Caption = '±'
       OnClick = SwitchSignButtonClick
     end
     object SqrtSpeedButton: TSpeedButton
@@ -108,7 +108,7 @@ object SimpleModeForm: TSimpleModeForm
       Height = 25
       Top = 40
       Width = 32
-      Caption = 'sqrt'
+      Caption = '√'
       OnClick = SqrtSpeedButtonClick
     end
     object Num7Button: TSpeedButton
