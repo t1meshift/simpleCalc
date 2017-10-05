@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Buttons, Menus, ActnList, Clipbrd, ComCtrls, LCLType, UMemory, UHistory, UAbout;
+  ExtCtrls, Buttons, Menus, ActnList, Clipbrd, LCLType, URPNParser, UMemory, UHistory, UAbout;
 
 type
 
@@ -83,10 +83,11 @@ type
 
 var
   SimpleModeForm: TSimpleModeForm;
-  FirstOperand, SecondOperand: double; //Operands
-  PercentValue: double; // percent value we've taken from the operation
+  LastResult, LastOperand: extended; //Operands
+  PercentValue: extended; // percent value we've taken from the operation
   Operation: char; //Last operation
-  StartOfEnter, HasSecondOperand, EqualWasCalled, CalcError: boolean; //Flags
+  StartOfEnter, ScreenModified, EqualWasCalled, CalcError: boolean; //Flags
+  OpQueue: TRPNQueue; //operations queue
 
 
 implementation
@@ -98,6 +99,7 @@ implementation
 procedure TSimpleModeForm.FormCreate(Sender: TObject);
 begin
   ClearAll;
+  OpQueue := TRPNQueue.Create;
 end;
 
 procedure TSimpleModeForm.HistoryMenuItemClick(Sender: TObject);
@@ -157,17 +159,18 @@ end;
 procedure TSimpleModeForm.InputHandle(Key: char);  // input handler, unites keyboard and button enter
 var
   s: string;
-  t: double;
+  t: extended;
 begin
   if CalcError then exit;
   case Key of
     // just digits
     '0'..'9':
     begin
-      if HasSecondOperand then
+      if (not ScreenModified) or EqualWasCalled then
       begin
         ClearLastNumber;
-        HasSecondOperand := false;
+        ScreenModified := true;
+        EqualWasCalled := false;
       end;
       if (pos('E', CalcScreenLabel.Caption) <> 0) or (Length(CalcScreenLabel.Caption) > 20) then exit;
       if (CalcScreenLabel.Caption = '0') then
@@ -179,7 +182,7 @@ begin
     // backspace symbol
     #8:
     begin
-      if HasSecondOperand then exit;
+      if (not ScreenModified) then exit;
       if (pos('E', CalcScreenLabel.Caption) <> 0)
       or (CalcScreenLabel.Caption = '0')
       or (Length(CalcScreenLabel.Caption) = 1)
@@ -198,10 +201,11 @@ begin
     //comma symbol
     '.', ',':
     begin
-      if HasSecondOperand then
+      if (not ScreenModified) or EqualWasCalled then
       begin
         ClearLastNumber;
-        HasSecondOperand := false;
+        ScreenModified := true;
+        EqualWasCalled := false;
       end;
       if (pos(DefaultFormatSettings.DecimalSeparator, CalcScreenLabel.Caption) <> 0)
       or (pos('E', CalcScreenLabel.Caption) <> 0)
@@ -212,11 +216,6 @@ begin
 
     '+','-','*','/','=',#13:
     begin
-      if HasSecondOperand and (Key <> #13) and (Key <> '=') then
-      begin
-        if (Key = Operation) and not EqualWasCalled then exit;
-        HasSecondOperand := false;
-      end;
       ArithmHandle(Key);
     end;
 
@@ -227,7 +226,7 @@ end;
 
 procedure TSimpleModeForm.MemoryHandle(MemAction: char); // memory buttons handler
 var
-  MemVal: double;
+  MemVal: extended;
 begin
   if CalcError then exit;
   case MemAction of
@@ -239,14 +238,14 @@ begin
        if EqualWasCalled then
        begin
          StartOfEnter := true;
-         HasSecondOperand := false;
+         ScreenModified := true;
          EqualWasCalled := false;
        end;
-       if StartOfEnter or (not HasSecondOperand) then
+       if StartOfEnter or ScreenModified then
          CalcScreenLabel.Caption := FloatToStr(Memory.Read);
-       if HasSecondOperand then
+       if (not ScreenModified) then
        begin
-         SecondOperand := Memory.Read;
+         LastOperand := Memory.Read;
          CalcScreenLabel.Caption := FloatToStr(Memory.Read);
        end;
       end;
@@ -265,124 +264,106 @@ end;
 
 procedure TSimpleModeForm.ArithmHandle(ArithmAction: char);
 var
-  t: double;
+  ts: string;
+  t: extended;
 begin
+  //TODO ПЕРЕПИСАТЬ ВСЕ НА ОБРАТНУЮ ПОЛЬСКУЮ ЗАПИСЬ
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit; //if there is any error do nothing
   try
     case ArithmAction of
       '+','-','*','/':
         begin
-          if StartOfEnter or EqualWasCalled then
+          if (StartOfEnter or EqualWasCalled) then
           begin
-            EqualWasCalled := false;
-            FirstOperand := t;
+            OpQueue.Push(FloatToStr(t)); //push it as first operand
+            HistoryScreenLabel.Caption := FloatToStr(t) + ' ' + ArithmAction;
+            LastResult := t;
             StartOfEnter := false;
-            HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' ' + ArithmAction + ' ';
-            HasSecondOperand := true;
-            SecondOperand := t;
+            EqualWasCalled := false;
+            ScreenModified := false;
           end
           else
           begin
-            if (not HasSecondOperand) then
+            if (ScreenModified) then
             begin
-              SecondOperand := t;
-              HasSecondOperand := true;
+              OpQueue.Push(FloatToStr(t));
+              OpQueue.Push(Operation);
+              HistoryScreenLabel.Caption := HistoryScreenLabel.Caption + ' ' + FloatToStr(t) + ' ' + ArithmAction;
+              LastResult := ParseRPN(OpQueue);
+              LastOperand := t;
+              OpQueue.Push(FloatToStr(LastResult));
+              CalcScreenLabel.Caption := FloatToStr(LastResult);
+              ScreenModified := false;
+            end
+            else
+            begin
+              ts := HistoryScreenLabel.Caption;
+              ts[Length(ts)] := ArithmAction;
+              HistoryScreenLabel.Caption := ts;
             end;
-            case ArithmAction of
-              '+':
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' + ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand + SecondOperand));
-                  FirstOperand := FirstOperand + SecondOperand;
-                end;
-              '-':
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' - ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand - SecondOperand));
-                  FirstOperand := FirstOperand - SecondOperand;
-                end;
-              '*':
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' * ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand * SecondOperand));
-                  FirstOperand := FirstOperand * SecondOperand;
-                end;
-              '/':
-              if (SecondOperand = 0) then begin
-                ThrowCalcError('Division by 0 is impossible');
-                exit;
-              end
-              else
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' / ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand / SecondOperand));
-                  FirstOperand := FirstOperand / SecondOperand;
-                end;
-            end;
-            if (not HasSecondOperand) then
-              HistoryScreenLabel.Caption := FloatToStr(FirstOperand) + ' ' + ArithmAction + ' ';
           end;
           Operation := ArithmAction;
         end;
 
       '=', #13:
         begin
-          if StartOfEnter then exit;
-          if (not HasSecondOperand) then
+          if (StartOfEnter) then exit;
+          if (EqualWasCalled) then begin
+            //OpQueue.Flush;
+            OpQueue.Push(FloatToStr(t));
+            OpQueue.Push(FloatToStr(LastOperand));
+            OpQueue.Push(Operation);
+            LastResult := ParseRPN(OpQueue);
+
+            CalcScreenLabel.Caption := FloatToStr(LastResult);
+          end
+          else
           begin
-            SecondOperand := t;
-            HasSecondOperand := true;
+            OpQueue.Push(FloatToStr(t));
+            OpQueue.Push(Operation);
+
+            LastResult := ParseRPN(OpQueue);
+            LastOperand := t;
+
+            History.AddItem(HistoryScreenLabel.Caption + ' ' + FloatToStr(LastOperand), FloatToStr(LastResult));
+
+            HistoryScreenLabel.Caption := '';
+            CalcScreenLabel.Caption := FloatToStr(LastResult);
+
+            EqualWasCalled := true;
+            OpQueue.Flush;
           end;
-           case Operation of
-             '+':
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' + ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand + SecondOperand));
-                  FirstOperand := FirstOperand + SecondOperand;
-                end;
-              '-':
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' - ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand - SecondOperand));
-                  FirstOperand := FirstOperand - SecondOperand;
-                end;
-              '*':
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' * ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand * SecondOperand));
-                  FirstOperand := FirstOperand * SecondOperand;
-                end;
-              '/':
-                if (SecondOperand = 0) then begin
-                  ThrowCalcError('Division by 0 is impossible');
-                  exit;
-                end
-                else
-                begin
-                  History.AddItem(FloatToStr(FirstOperand) + ' / ' + FloatToStr(SecondOperand), FloatToStr(FirstOperand / SecondOperand));
-                  FirstOperand := FirstOperand / SecondOperand;
-                end;
-           end;
-           HistoryScreenLabel.Caption := '';
-           CalcScreenLabel.Caption := FloatToStr(FirstOperand);
-           EqualWasCalled := true;
         end;
     end;
-  except on EOverflow do
-    ThrowCalcError('Overflow');
+  except
+    on EOverflow do
+      ThrowCalcError('Overflow');
+    on EDivByZero do
+      ThrowCalcError('Division by 0 is impossible');
+    on EMathError do
+      ThrowCalcError('Incorrect operation');
   end;
 end;
 
 procedure TSimpleModeForm.ClearLastNumber;
 begin
   if not CalcError then
+  begin
     CalcScreenLabel.Caption := '0';
+    ScreenModified := true;
+  end;
 end;
 
 procedure TSimpleModeForm.ClearAll;
 begin
   //CE + clear operation and memory
-  HistoryScreenLabel.Caption := '';
-  CalcScreenLabel.Caption := '0';
-  FirstOperand := 0;
-  SecondOperand := 0;
-  StartOfEnter := true;
-  HasSecondOperand := false;
-  EqualWasCalled := false;
   CalcError := false;
+  ClearLastNumber;
+  HistoryScreenLabel.Caption := '';
+  LastResult := 0;
+  LastOperand := 0;
+  StartOfEnter := true;
+  EqualWasCalled := false;
   Operation := #0;
 end;
 
@@ -394,6 +375,7 @@ var
 begin
   if (Clipboard.AsText <> '') and (not CalcError) then
   begin
+    //filtering an input
     CommaPassed := false;
     TextToPaste := '';
     for i := 1 to Length(Clipboard.AsText) do
@@ -413,35 +395,15 @@ end;
 
 procedure TSimpleModeForm.PercentButtonClick(Sender: TObject);
 var
-  t: double;
+  t: extended;
 begin
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit;
   try
-    if (not HasSecondOperand) then
-    begin
-      PercentValue := t;
-      SecondOperand := FirstOperand * (t / 100);
-      CalcScreenLabel.Caption := FloatToStr(SecondOperand);
-      HasSecondOperand := true;
-    end
-    else
-    begin
-      if (EqualWasCalled) then
-      begin
-        SecondOperand := FirstOperand;
-        PercentValue := SecondOperand;
-        case Operation of
-          '+':
-              FirstOperand := FirstOperand + (FirstOperand * (PercentValue / 100));
-          '-':
-              FirstOperand := FirstOperand - (FirstOperand * (PercentValue / 100));
-          '*','/':
-              FirstOperand := FirstOperand * (PercentValue / 100);
-        end;
-        CalcScreenLabel.Caption := FloatToStr(FirstOperand);
-        HasSecondOperand := false;
-      end;
-    end;
+    PercentValue := t;
+    LastOperand := LastResult * (PercentValue / 100);
+    CalcScreenLabel.Caption := FloatToStr(LastOperand);
+    if (EqualWasCalled) then
+      LastResult := LastOperand;
   except
     on EOverflow do
       ThrowCalcError('Overflow');
@@ -452,12 +414,12 @@ end;
 
 procedure TSimpleModeForm.ReverseNumButtonClick(Sender: TObject);
 var
-  t: double;
+  t: extended;
 begin
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit;
   try
   CalcScreenLabel.Caption := FloatToStr(1/t);
-  HasSecondOperand := false;
+  ScreenModified := true;
   except
     on EDivByZero do
       ThrowCalcError('Division by 0 is impossible');
@@ -477,12 +439,12 @@ end;
 
 procedure TSimpleModeForm.SqrtSpeedButtonClick(Sender: TObject);
 var
-  t: double;
+  t: extended;
 begin
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit;
   try
   CalcScreenLabel.Caption := FloatToStr(sqrt(t));
-  HasSecondOperand := false;
+  ScreenModified := true;
   except
     on EOverflow do
       ThrowCalcError('Overflow');
@@ -493,12 +455,12 @@ end;
 
 procedure TSimpleModeForm.SwitchSignButtonClick(Sender: TObject);
 var
-  t: double;
+  t: extended;
 begin
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit;
   try
   CalcScreenLabel.Caption := FloatToStr(-t);
-  HasSecondOperand := false;
+  ScreenModified := true;
   except
     on EOverflow do
       ThrowCalcError('Overflow');

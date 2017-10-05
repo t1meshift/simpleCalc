@@ -55,10 +55,11 @@ var
   i: UInt32;
   his: THistoryItems;
 begin
+  HistoryListBox.Clear;
   his := History.GetAll;
   if (Length(his) < 1) then exit;
   for i := Length(his)-1 downto 0 do
-    HistoryListBox.AddItem(his[i].Expression + #13 + ' = ' + his[i].OpResult, nil);
+    HistoryListBox.AddItem(his[i].Expression + ' = ' + his[i].OpResult, nil);
 end;
 
 procedure THistoryForm.HistoryListBoxDblClick(Sender: TObject);
@@ -98,4 +99,3 @@ end;
 initialization
 
 end.
-

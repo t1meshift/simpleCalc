@@ -12,13 +12,13 @@ type
   { TMemory }
 
   TMemory = class
-    Value: double;
+    Value: extended;
     constructor Create;
-    procedure Save(Val: double);
-    function Read: double;
+    procedure Save(Val: extended);
+    function Read: extended;
     procedure Clear;
-    procedure Add(Val: double);
-    procedure Sub(Val: double);
+    procedure Add(Val: extended);
+    procedure Sub(Val: extended);
   end;
 
 var
@@ -31,12 +31,12 @@ begin
   Value := 0;
 end;
 
-procedure TMemory.Save(Val: double);
+procedure TMemory.Save(Val: extended);
 begin
   Value := Val;
 end;
 
-function TMemory.Read: double;
+function TMemory.Read: extended;
 begin
   Result := Value;
 end;
@@ -46,12 +46,12 @@ begin
   Value := 0;
 end;
 
-procedure TMemory.Add(Val: double);
+procedure TMemory.Add(Val: extended);
 begin
   Value := Value + Val;
 end;
 
-procedure TMemory.Sub(Val: double);
+procedure TMemory.Sub(Val: extended);
 begin
   Value := Value - Val;
 end;

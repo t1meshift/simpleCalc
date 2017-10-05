@@ -1,7 +1,7 @@
 object HistoryForm: THistoryForm
-  Left = 232
+  Left = -50
   Height = 241
-  Top = 154
+  Top = 489
   Width = 436
   BorderIcons = [biSystemMenu]
   BorderStyle = bsToolWindow

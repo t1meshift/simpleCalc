@@ -32,6 +32,8 @@
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
             <Optimizations>
               <OptimizationLevel Value="3"/>
             </Optimizations>
@@ -63,7 +65,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="7">
       <Unit0>
         <Filename Value="simpleCalc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -93,9 +95,20 @@
         <Filename Value="uhistory.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HistoryForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="UHistory"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="urpnparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="URPNParser"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="ustack.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UStack"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

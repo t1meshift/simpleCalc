@@ -1,7 +1,7 @@
 object SimpleModeForm: TSimpleModeForm
-  Left = 210
+  Left = 529
   Height = 287
-  Top = 120
+  Top = 217
   Width = 208
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
