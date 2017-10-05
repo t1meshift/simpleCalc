@@ -60,6 +60,7 @@ type
     procedure CommaClick(Sender: TObject);
     procedure CopyMenuItemClick(Sender: TObject);
     procedure DigitClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure HistoryMenuItemClick(Sender: TObject);
     procedure MemoryClick(Sender: TObject);
@@ -118,6 +119,12 @@ begin
   InputHandle(TSpeedButton(Sender).Caption[1]);
 end;
 
+procedure TSimpleModeForm.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  FreeAndNil(OpQueue);
+end;
+
 procedure TSimpleModeForm.BkspClick(Sender: TObject);
 begin
   InputHandle(#8);
@@ -169,6 +176,8 @@ begin
       if (not ScreenModified) or EqualWasCalled then
       begin
         ClearLastNumber;
+        if EqualWasCalled then
+          StartOfEnter := true;
         ScreenModified := true;
         EqualWasCalled := false;
       end;
@@ -198,7 +207,7 @@ begin
       end;
     end;
 
-    //comma symbol
+    //decimal delimeter symbol
     '.', ',':
     begin
       if (not ScreenModified) or EqualWasCalled then
@@ -267,7 +276,6 @@ var
   ts: string;
   t: extended;
 begin
-  //TODO ПЕРЕПИСАТЬ ВСЕ НА ОБРАТНУЮ ПОЛЬСКУЮ ЗАПИСЬ
   if (not TryStrToFloat(CalcScreenLabel.Caption, t)) then exit; //if there is any error do nothing
   try
     case ArithmAction of
@@ -309,12 +317,12 @@ begin
         begin
           if (StartOfEnter) then exit;
           if (EqualWasCalled) then begin
-            //OpQueue.Flush;
             OpQueue.Push(FloatToStr(t));
             OpQueue.Push(FloatToStr(LastOperand));
             OpQueue.Push(Operation);
             LastResult := ParseRPN(OpQueue);
 
+            History.AddItem(FloatToStr(t) + ' ' + Operation + ' ' + FloatToStr(LastOperand), FloatToStr(LastResult));
             CalcScreenLabel.Caption := FloatToStr(LastResult);
           end
           else

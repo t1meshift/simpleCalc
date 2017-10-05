@@ -8,7 +8,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, USimpleMode, UMemory, UAbout, UHistory, URPNParser, UStack
+  Forms, sysutils, USimpleMode, UMemory, UAbout, UHistory, URPNParser, UStack
   { you can add units after this };
 
 {$R *.res}
@@ -21,5 +21,6 @@ begin
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(THistoryForm, HistoryForm);
   Application.Run;
+  FreeAndNil(Memory);
 end.
 

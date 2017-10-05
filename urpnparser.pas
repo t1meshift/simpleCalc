@@ -5,7 +5,7 @@ unit URPNParser;
 interface
 
 uses
-  Classes, SysUtils, UStack;
+  Classes, SysUtils, UStack, Dialogs;
 
 type
 
@@ -51,6 +51,7 @@ begin
         begin
           SecondOperand := StrToFloat(Stack.Pop);
           FirstOperand := StrToFloat(Stack.Pop);
+
           case StackValue of
             '+':
               OpResult := FirstOperand + SecondOperand;
@@ -68,6 +69,8 @@ begin
     StackValue := Ops.Pop;
   end;
   Result := StrToFloat(Stack.Pop);
+  FreeAndNil(Stack);
+  Ops := nil;
 end;
 
 { TRPNQueue }
@@ -130,5 +133,4 @@ begin
     RootNode := t;
   end;
 end;
-
 end.

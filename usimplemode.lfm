@@ -1,7 +1,7 @@
 object SimpleModeForm: TSimpleModeForm
-  Left = 529
+  Left = 285
   Height = 287
-  Top = 217
+  Top = 182
   Width = 208
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
@@ -10,6 +10,7 @@ object SimpleModeForm: TSimpleModeForm
   ClientWidth = 208
   KeyPreview = True
   Menu = CalcMenu
+  OnClose = FormClose
   OnCreate = FormCreate
   OnKeyPress = OnKeyboardInput
   LCLVersion = '1.6.2.0'
